@@ -1,3 +1,14 @@
+// Tile states: 
+// NORMAL
+// HOVERED
+// SELECTED
+// PATH_END
+// PATH
+
+// Tile State -> Normal, Selected, Hovered, Path End, Path
+
+
+
 class IsoTile {
   public i: number;
   public j: number;
@@ -5,7 +16,7 @@ class IsoTile {
   public y: number;
   public size: number;
 
-  public color = color(COLOR_PALETTE.TILE_PRIMARY);
+  public color = color('#D62828');
 
   public red: number;
   public green: number;
@@ -34,9 +45,9 @@ class IsoTile {
     x: number;
     y: number;
     size: number;
-    color?: string | p5.Color;
+    tileColor?: p5.Color;
   }) {
-    const { i, j, x, y, size } = options;
+    const { i, j, x, y, size, tileColor } = options;
 
     this.i = i;
     this.j = j;
@@ -50,13 +61,13 @@ class IsoTile {
       new DefaultTileState(this),
       new SelectedTileState(this),
       new HoveredTileState(this),
+      new PathTileState(this),
+      new PathEndTileState(this)
     ];
+    if (color) this.color = tileColor;
     this.currentState = this.states[TileStates.DEFAULT];
-
-    [this.red, this.green, this.blue] = hexToRgb(
-      this.color.toString("#rrggbb")
-    );
-
+    [this.red, this.green, this.blue] = colorToRgb(this.color);
+    this.currentState.enter();
     this.calculateGeometry();
   }
 
@@ -73,23 +84,6 @@ class IsoTile {
   public draw() {
     stroke(this.red * 0.3, this.green * 0.3, this.blue * 0.3);
     strokeWeight(2);
-
-    // TODO: add update method and state management for tile
-    // if (this.isSelected) {
-    //   this.red = 49;
-    //   this.blue = 238;
-    // } else if (this.isStart) {
-    //   this.red = 29;
-    //   this.green = 120;
-    //   this.blue = 116;
-    // } else {
-    //   this.red = 238;
-    //   this.green = 46;
-    //   this.blue = 49;
-    // }
-
-    // const isHovered = this.isPointInsidePolygon(mouseX, mouseY);
-    // const hoverOffset = isHovered ? 0.1 * this.size : 0;
 
     fill(this.red * 0.75, this.green * 0.75, this.blue * 0.75);
     quad(
@@ -133,6 +127,7 @@ class IsoTile {
   }
 
   public setState(state: TileStates) {
+    this.currentState.exit();
     this.currentState = this.states[state];
     this.currentState.enter();
   }

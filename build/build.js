@@ -1,32 +1,212 @@
+class Game {
+    constructor(gameParams) {
+        this.FRAME_RATE = 60;
+        this.WIDTH = 600;
+        this.HEIGHT = 600;
+        this.GRID_SIZE = 10;
+        this.COLOR_PALETTE = {
+            BACKGROUND_DARK: "#003049",
+            TILE_PRIMARY: "#D62828",
+            TILE_SELECTED: "#F77F00",
+            TILE_PATH_END: '#EAE2B7',
+            TILE_PATH: "#FCBF49"
+        };
+        this.lastInput = InputCode.NONE;
+        this.states = [
+            new IdleGameState(),
+            new TileSelectedGameState(),
+        ];
+        this.grid = [];
+        const { canvasHeight, canvasWidth, gridSize, tileSize, desiredFrameRate } = gameParams;
+        if (canvasWidth)
+            this.WIDTH = canvasWidth;
+        if (canvasHeight)
+            this.HEIGHT = canvasHeight;
+        if (gridSize)
+            this.GRID_SIZE = gridSize;
+        if (desiredFrameRate)
+            this.FRAME_RATE = desiredFrameRate;
+        this.TILE_SIZE = tileSize ? tileSize : this.WIDTH / this.GRID_SIZE;
+        console.log("🚀 - Setup initialized within Game Object - P5 and Game logic is running");
+        createCanvas(this.WIDTH, this.HEIGHT);
+        frameRate(this.FRAME_RATE);
+        this.cols = this.GRID_SIZE;
+        this.rows = this.GRID_SIZE;
+        this.currentState = this.states[GameStateType.IDLE];
+        this.aStar = new AStar(this.cols, this.rows);
+        for (let i = 0; i < this.GRID_SIZE; i++) {
+            for (let j = 0; j < this.GRID_SIZE; j++) {
+                const iso = toIso(i * this.TILE_SIZE - this.TILE_SIZE, j * this.TILE_SIZE);
+                this.grid.push(new IsoTile({
+                    i,
+                    j,
+                    x: iso.x + this.WIDTH / 2,
+                    y: iso.y + this.HEIGHT / 4,
+                    size: this.TILE_SIZE,
+                    tileColor: color(this.COLOR_PALETTE.TILE_PRIMARY)
+                }));
+            }
+        }
+    }
+    drawLastInputStatusText() {
+        textSize(32);
+        text(`Last input: ${this.lastInput}`, 10, 30);
+    }
+    setState(state, payload) {
+        this.currentState.exit();
+        this.currentState = this.states[state];
+        this.currentState.enter(payload);
+    }
+    update() {
+        background(this.COLOR_PALETTE.BACKGROUND_DARK);
+        this.grid.forEach((el) => el.draw());
+        this.currentState.run(this.lastInput);
+        this.drawLastInputStatusText();
+    }
+    static get instance() {
+        if (!Game._instance) {
+            Game._instance = new Game({});
+        }
+        return Game._instance;
+    }
+}
+var GameStateType;
+(function (GameStateType) {
+    GameStateType[GameStateType["IDLE"] = 0] = "IDLE";
+    GameStateType[GameStateType["TILE_SELECTED"] = 1] = "TILE_SELECTED";
+})(GameStateType || (GameStateType = {}));
+class GameState {
+    constructor(state) {
+        this.state = state;
+    }
+    enter(payload) { }
+    run(input) {
+        for (let i = 0; i < Game.instance.grid.length; i++) {
+            if (Game.instance.grid[i].isPointInsidePolygon(mouseX, mouseY)) {
+                Game.instance.grid[i].setState(TileStates.HOVERED);
+            }
+            else {
+                if (Game.instance.grid[i].currentState.state === TileStates.HOVERED)
+                    Game.instance.grid[i].setState(TileStates.DEFAULT);
+            }
+        }
+    }
+    exit() { }
+}
+class IdleGameState extends GameState {
+    constructor() {
+        super(GameStateType.IDLE);
+    }
+    run(input) {
+        super.run();
+        switch (input) {
+            case InputCode.LMB_PRESSED: {
+                for (let i = 0; i < Game.instance.grid.length; i++) {
+                    if (Game.instance.grid[i].isPointInsidePolygon(mouseX, mouseY)) {
+                        Game.instance.setState(GameStateType.TILE_SELECTED, {
+                            selectedTile: {
+                                i: Game.instance.grid[i].i,
+                                j: Game.instance.grid[i].j,
+                            },
+                        });
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    exit() { }
+}
+class TileSelectedGameState extends GameState {
+    constructor() {
+        super(GameStateType.TILE_SELECTED);
+    }
+    enter(enterData) {
+        this.start = enterData.selectedTile;
+    }
+    clearPath() {
+        this.path.forEach((el) => Game.instance.grid[toIndex(el.i, el.j)].setState(TileStates.DEFAULT));
+    }
+    exit() {
+        this.clearPath();
+        this.start = undefined;
+        this.end = undefined;
+    }
+    run(input) {
+        for (let i = 0; i < Game.instance.grid.length; i++) {
+            if (Game.instance.grid[i].isPointInsidePolygon(mouseX, mouseY)) {
+                Game.instance.grid[i].setState(TileStates.HOVERED);
+                if (this.end) {
+                    if (isEqual(this.end, {
+                        i: Game.instance.grid[i].i,
+                        j: Game.instance.grid[i].j,
+                    }))
+                        break;
+                    this.clearPath();
+                }
+                this.end = { i: Game.instance.grid[i].i, j: Game.instance.grid[i].j };
+                this.setPath();
+                break;
+            }
+        }
+        switch (input) {
+            case InputCode.ESC_PRESSED: {
+                Game.instance.setState(GameStateType.IDLE);
+                break;
+            }
+        }
+    }
+    setPath() {
+        this.path = Game.instance.aStar.findPath(Game.instance.aStar.getTile(this.start), Game.instance.aStar.getTile(this.end));
+        this.path.forEach((el, index) => {
+            const tileIndex = toIndex(el.i, el.j);
+            if (index === this.path.length - 1) {
+                Game.instance.grid[tileIndex].setState(TileStates.PATH_END);
+            }
+            else {
+                Game.instance.grid[tileIndex].setState(TileStates.PATH);
+            }
+        });
+    }
+}
 var InputCode;
 (function (InputCode) {
+    InputCode["NONE"] = "NONE";
     InputCode["LMB_PRESSED"] = "left mouse button pressed";
     InputCode["LMB_RELEASED"] = "left mouse button released";
+    InputCode["ESC_PRESSED"] = "escape key pressed";
 })(InputCode || (InputCode = {}));
-function mousePressed() {
+function mousePressed(event) {
     switch (mouseButton) {
         case LEFT: {
-            lastInput = InputCode.LMB_PRESSED;
+            Game.instance.lastInput = InputCode.LMB_PRESSED;
             break;
         }
     }
 }
-function mouseReleased() {
+function mouseReleased(event) {
     switch (mouseButton) {
         case LEFT: {
-            lastInput = InputCode.LMB_RELEASED;
+            Game.instance.lastInput = InputCode.LMB_RELEASED;
             break;
         }
     }
 }
-function drawLastInputStatusText() {
-    textSize(32);
-    text(`Last input: ${lastInput}`, 10, 30);
+function keyPressed(event) {
+    switch (keyCode) {
+        case ESCAPE: {
+            Game.instance.lastInput = InputCode.ESC_PRESSED;
+            break;
+        }
+    }
 }
 const COLOR_PALETTE = {
-    BACKGROUND_DARK: '#003049',
-    TILE_PRIMARY: '#D62828',
-    TILE_SELECTED: 'F77F00'
+    BACKGROUND_DARK: "#003049",
+    TILE_PRIMARY: "#D62828",
+    TILE_SELECTED: "#F77F00",
+    TILE_PATH_END: "#FCBF49",
+    TILE_PATH: '#EAE2B7'
 };
 const WIDTH = 600;
 const HEIGHT = 600;
@@ -37,33 +217,12 @@ let lastInput;
 const grid = [];
 let start;
 let end;
+let game;
 function setup() {
-    console.log("🚀 - Setup initialized - P5 is running");
-    createCanvas(WIDTH, HEIGHT);
-    frameRate(60);
-    for (let i = 0; i < GRID_SIZE; i++) {
-        for (let j = 0; j < GRID_SIZE; j++) {
-            const iso = toIso(i * TILE_SIZE - TILE_SIZE, j * TILE_SIZE);
-            grid.push(new IsoTile({
-                i,
-                j,
-                x: iso.x + width / 2,
-                y: iso.y + height / 4,
-                size: TILE_SIZE,
-            }));
-        }
-    }
-    aStar = new AStar(GRID_SIZE, GRID_SIZE);
-    const path = aStar.findPath(aStar.grid[0][0], aStar.grid[6][7]);
-    path.forEach(el => grid.find(tile => tile.i === el.i && tile.j === el.j).isSelected = true);
+    game = Game.instance;
 }
 function draw() {
-    background(COLOR_PALETTE.BACKGROUND_DARK);
-    drawLastInputStatusText();
-    grid.forEach(el => {
-        el.update(lastInput);
-        el.draw();
-    });
+    game.update();
 }
 function toCartesian(x, y) {
     const a = 0.5;
@@ -74,15 +233,28 @@ function toCartesian(x, y) {
     return createVector(x * d * det + y * -b * det, x * -c * det + y * a * det);
 }
 function toIso(x, y) {
-    return createVector(x * 0.5 + y * (-0.5), x * 0.25 + y * 0.25);
+    return createVector(x * 0.5 + y * -0.5, x * 0.25 + y * 0.25);
 }
 function hexToRgb(hex) {
-    hex = hex.replace('#', '');
+    hex = hex.replace("#", "");
     var bigint = parseInt(hex, 16);
     var r = (bigint >> 16) & 255;
     var g = (bigint >> 8) & 255;
     var b = bigint & 255;
     return [r, g, b];
+}
+function toIndex(i, j) {
+    return i * Game.instance.rows + j;
+}
+function colorToRgb(color) {
+    return color
+        .toString()
+        .replace(/[^\d,-]/g, '')
+        .split(",")
+        .map((el) => parseInt(el.trim(), 10));
+}
+function isEqual(obj1, obj2) {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
 class AStar {
     constructor(cols, rows) {
@@ -102,12 +274,24 @@ class AStar {
                 this.grid[i][j].addNeighbors(this.grid);
             }
         }
+        this.cash = new Map();
     }
     heuristic(a, b) {
         var d = dist(a.i, a.j, b.i, b.j);
         return d;
     }
+    reset() {
+        for (let i = 0; i < this.cols; i++) {
+            for (let j = 0; j < this.rows; j++) {
+                this.grid[i][j].reset();
+            }
+        }
+    }
     findPath(start, end) {
+        this.reset();
+        if (this.cash.has({ start, end })) {
+            return this.cash.get({ start, end });
+        }
         const openSet = new Set();
         const closedSet = new Set();
         openSet.add(start);
@@ -121,7 +305,9 @@ class AStar {
             }
             let current = osArr[next];
             if (current === end) {
-                return this.getPath(current);
+                const path = this.getPath(current);
+                this.cash.set({ start, end }, path);
+                return path;
             }
             openSet.delete(current);
             closedSet.add(current);
@@ -161,15 +347,19 @@ class AStar {
         }
         return path;
     }
+    getTile(coords) {
+        return this.grid[coords.i][coords.j];
+    }
 }
 class Tile {
-    constructor(i, j) {
+    constructor(i, j, allowDiagonal) {
+        this.allowDiagonal = false;
         this.heuristic = 0;
         this.goal = 0;
         this.cost = 0;
         this.neighbors = [];
         this.previous = undefined;
-        this.addNeighbors = function (grid) {
+        this.addNeighbors = (grid) => {
             const COLS = grid.length;
             const ROWS = grid[0].length;
             const i = this.i;
@@ -182,26 +372,35 @@ class Tile {
                 this.neighbors.push(grid[i][j - 1]);
             if (j < ROWS - 1)
                 this.neighbors.push(grid[i][j + 1]);
-            if (i > 0 && j > 0)
-                this.neighbors.push(grid[i - 1][j - 1]);
-            if (i > 0 && j < ROWS - 1)
-                this.neighbors.push(grid[i - 1][j + 1]);
-            if (i < COLS - 1 && j > 0)
-                this.neighbors.push(grid[i + 1][j - 1]);
-            if (i < COLS - 1 && j > ROWS - 1)
-                this.neighbors.push(grid[i + 1][j + 1]);
+            if (this.allowDiagonal) {
+                if (i > 0 && j > 0)
+                    this.neighbors.push(grid[i - 1][j - 1]);
+                if (i > 0 && j < ROWS - 1)
+                    this.neighbors.push(grid[i - 1][j + 1]);
+                if (i < COLS - 1 && j > 0)
+                    this.neighbors.push(grid[i + 1][j - 1]);
+                if (i < COLS - 1 && j > ROWS - 1)
+                    this.neighbors.push(grid[i + 1][j + 1]);
+            }
         };
         this.i = i;
         this.j = j;
+        this.allowDiagonal = !!allowDiagonal;
+    }
+    reset() {
+        this.heuristic = 0;
+        this.goal = 0;
+        this.cost = 0;
+        this.previous = undefined;
     }
 }
 class IsoTile {
     constructor(options) {
-        this.color = color(COLOR_PALETTE.TILE_PRIMARY);
+        this.color = color('#D62828');
         this.isSelected = false;
         this.isStart = false;
         this.hoverOffset = 0;
-        const { i, j, x, y, size } = options;
+        const { i, j, x, y, size, tileColor } = options;
         this.i = i;
         this.j = j;
         this.x = x;
@@ -213,9 +412,14 @@ class IsoTile {
             new DefaultTileState(this),
             new SelectedTileState(this),
             new HoveredTileState(this),
+            new PathTileState(this),
+            new PathEndTileState(this)
         ];
+        if (color)
+            this.color = tileColor;
         this.currentState = this.states[TileStates.DEFAULT];
-        [this.red, this.green, this.blue] = hexToRgb(this.color.toString("#rrggbb"));
+        [this.red, this.green, this.blue] = colorToRgb(this.color);
+        this.currentState.enter();
         this.calculateGeometry();
     }
     calculateGeometry() {
@@ -241,6 +445,7 @@ class IsoTile {
         this.currentState.handleInput();
     }
     setState(state) {
+        this.currentState.exit();
         this.currentState = this.states[state];
         this.currentState.enter();
     }
@@ -265,17 +470,16 @@ var TileStates;
     TileStates[TileStates["DEFAULT"] = 0] = "DEFAULT";
     TileStates[TileStates["SELECTED"] = 1] = "SELECTED";
     TileStates[TileStates["HOVERED"] = 2] = "HOVERED";
-    TileStates[TileStates["PATH_START"] = 3] = "PATH_START";
+    TileStates[TileStates["PATH"] = 3] = "PATH";
     TileStates[TileStates["PATH_END"] = 4] = "PATH_END";
 })(TileStates || (TileStates = {}));
 class TileSate {
     constructor(state) {
         this.state = state;
     }
-    enter() {
-    }
-    handleInput() {
-    }
+    enter() { }
+    exit() { }
+    handleInput() { }
 }
 class DefaultTileState extends TileSate {
     constructor(tile) {
@@ -283,21 +487,23 @@ class DefaultTileState extends TileSate {
         this.tile = tile;
     }
     enter() {
-        this.tile.hoverOffset = 0;
         this.tile.color = color(COLOR_PALETTE.TILE_PRIMARY);
-        [this.tile.red, this.tile.green, this.tile.blue] = hexToRgb(this.tile.color.toString("#rrggbb"));
+        [this.tile.red, this.tile.green, this.tile.blue] = colorToRgb(this.tile.color);
     }
-    handleInput() {
-        switch (lastInput) {
-            case InputCode.LMB_PRESSED: {
-                console.log('DEAFULT TILE STATE INPUT HANDLER CALLED');
-                if (this.tile.isPointInsidePolygon(mouseX, mouseY)) {
-                    this.tile.setState(TileStates.HOVERED);
-                }
-                break;
-            }
-        }
+    exit() { }
+    handleInput() { }
+}
+class SelectedTileState extends TileSate {
+    constructor(tile) {
+        super(TileStates.SELECTED);
+        this.tile = tile;
     }
+    enter() {
+        this.tile.color = color(COLOR_PALETTE.TILE_SELECTED);
+        [this.tile.red, this.tile.green, this.tile.blue] = colorToRgb(this.tile.color);
+    }
+    exit() { }
+    handleInput() { }
 }
 class HoveredTileState extends TileSate {
     constructor(tile) {
@@ -306,27 +512,34 @@ class HoveredTileState extends TileSate {
     }
     enter() {
         this.tile.hoverOffset = 0.1 * this.tile.size;
-        this.tile.color = color(COLOR_PALETTE.TILE_SELECTED);
-        [this.tile.red, this.tile.green, this.tile.blue] = hexToRgb(this.tile.color.toString("#rrggbb"));
     }
-    handleInput() {
-        switch (lastInput) {
-            case InputCode.LMB_PRESSED: {
-                console.log('HOVERED TILE STATE INPUT HANDLER CALLED');
-                if (this.tile.isPointInsidePolygon(mouseX, mouseY)) {
-                    this.tile.setState(TileStates.DEFAULT);
-                }
-                break;
-            }
-        }
+    exit() {
+        this.tile.hoverOffset = 0;
     }
+    handleInput() { }
 }
-class SelectedTileState extends TileSate {
+class PathTileState extends TileSate {
     constructor(tile) {
-        super(TileStates.SELECTED);
+        super(TileStates.PATH);
         this.tile = tile;
     }
-    enter() { }
+    enter() {
+        this.tile.color = color(COLOR_PALETTE.TILE_PATH);
+        [this.tile.red, this.tile.green, this.tile.blue] = colorToRgb(this.tile.color);
+    }
+    exit() { }
+    handleInput() { }
+}
+class PathEndTileState extends TileSate {
+    constructor(tile) {
+        super(TileStates.PATH_END);
+        this.tile = tile;
+    }
+    enter() {
+        this.tile.color = color(COLOR_PALETTE.TILE_PATH_END);
+        [this.tile.red, this.tile.green, this.tile.blue] = colorToRgb(this.tile.color);
+    }
+    exit() { }
     handleInput() { }
 }
 //# sourceMappingURL=build.js.map

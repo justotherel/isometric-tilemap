@@ -1,27 +1,33 @@
 enum InputCode {
+  NONE = 'NONE',
   LMB_PRESSED = 'left mouse button pressed',
-  LMB_RELEASED = 'left mouse button released'
+  LMB_RELEASED = 'left mouse button released',
+  ESC_PRESSED = 'escape key pressed'
 }
 
-function mousePressed() {
+function mousePressed(event: object) {
   switch (mouseButton) {
     case LEFT: {
-      lastInput = InputCode.LMB_PRESSED;
+      Game.instance.lastInput = InputCode.LMB_PRESSED;
       break;
     }
   }
 }
 
-function mouseReleased() {
+function mouseReleased(event: object) {
   switch (mouseButton) {
     case LEFT: {
-      lastInput = InputCode.LMB_RELEASED;
+      Game.instance.lastInput = InputCode.LMB_RELEASED;
       break;
     }
   }
 }
 
-function drawLastInputStatusText() {
-  textSize(32);
-  text(`Last input: ${lastInput}`, 10, 30);
+function keyPressed(event: object) {
+  switch (keyCode) {
+    case ESCAPE: {
+      Game.instance.lastInput = InputCode.ESC_PRESSED;
+      break;
+    }
+  }
 }
