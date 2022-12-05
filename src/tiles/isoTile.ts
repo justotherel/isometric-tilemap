@@ -1,14 +1,3 @@
-// Tile states: 
-// NORMAL
-// HOVERED
-// SELECTED
-// PATH_END
-// PATH
-
-// Tile State -> Normal, Selected, Hovered, Path End, Path
-
-
-
 class IsoTile {
   public i: number;
   public j: number;
@@ -16,7 +5,7 @@ class IsoTile {
   public y: number;
   public size: number;
 
-  public color = color('#D62828');
+  public color = color(COLOR_PALETTE.TILE_PRIMARY);
 
   public red: number;
   public green: number;

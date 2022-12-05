@@ -1,4 +1,3 @@
-// TODO: Fix janky tile selection
 // TODO: Tiles can be at different states at the same time ??? Hovered + Selected;
 
 enum TileStates {
@@ -20,7 +19,7 @@ class TileSate {
   public exit() {}
 
   // TODO: Rename to update / draw ???
-  // Handles state-pecific draw logic ?
+  // Handles state-specific draw logic ?
   public handleInput() {}
 }
 
@@ -79,7 +78,7 @@ class HoveredTileState extends TileSate {
     this.tile.hoverOffset = 0;
   }
 
-  handleInput() {}
+  public handleInput() {}
 }
 
 class PathTileState extends TileSate {
@@ -98,7 +97,7 @@ class PathTileState extends TileSate {
 
   public exit() {}
 
-  handleInput() {}
+  public handleInput() {}
 }
 
 class PathEndTileState extends TileSate {
@@ -117,5 +116,5 @@ class PathEndTileState extends TileSate {
 
   public exit() {}
 
-  handleInput() {}
+  public handleInput() {}
 }

@@ -1,4 +1,4 @@
-// TODO: Implement cashing of computed paths;
+// TODO: Make cashing work, reset() meses cash up
 interface Query {
   start: Tile;
   end: Tile;
@@ -51,7 +51,7 @@ class AStar {
     // this might make cash always empty ?
     this.reset();
 
-    // caash is indeed always empty
+    // cash is indeed always empty
     if (this.cash.has({ start, end })) {
       return this.cash.get({ start, end });
     }

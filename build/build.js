@@ -208,15 +208,6 @@ const COLOR_PALETTE = {
     TILE_PATH_END: "#FCBF49",
     TILE_PATH: '#EAE2B7'
 };
-const WIDTH = 600;
-const HEIGHT = 600;
-const GRID_SIZE = 10;
-const TILE_SIZE = WIDTH / GRID_SIZE;
-let aStar;
-let lastInput;
-const grid = [];
-let start;
-let end;
 let game;
 function setup() {
     game = Game.instance;
@@ -396,7 +387,7 @@ class Tile {
 }
 class IsoTile {
     constructor(options) {
-        this.color = color('#D62828');
+        this.color = color(COLOR_PALETTE.TILE_PRIMARY);
         this.isSelected = false;
         this.isStart = false;
         this.hoverOffset = 0;
