@@ -1,19 +1,27 @@
-class IsoTile {
+import * as p5 from "p5";
+import { p5lib } from "../main";
+import { colorToRgb } from "../utils";
+import { TileSate } from "./states/tileState";
+import { PathEndTileState } from "./states/pathEndTileState";
+import { TileStates } from "../interfaces/tileStates";
+import { PathTileState } from "./states/pathTileState";
+import { HoveredTileState } from "./states/hoveredTileState";
+import { SelectedTileState } from "./states/selectedTileState";
+import { DefaultTileState } from "./states/defaultTileState";
+import { COLOR_PALETTE } from "../constants";
+
+export class IsoTile {
   public i: number;
   public j: number;
   public x: number;
   public y: number;
   public size: number;
 
-  public color = color(COLOR_PALETTE.TILE_PRIMARY);
+  public color = p5lib.color(COLOR_PALETTE.TILE_PRIMARY);
 
   public red: number;
   public green: number;
   public blue: number;
-
-  public isSelectable: boolean;
-  public isSelected = false;
-  public isStart = false;
 
   public states: TileSate[];
   public currentState: TileSate;
@@ -43,17 +51,15 @@ class IsoTile {
     this.x = x;
     this.y = y;
     this.size = size;
-    this.isSelected = false;
-    this.isStart = false;
 
     this.states = [
       new DefaultTileState(this),
       new SelectedTileState(this),
       new HoveredTileState(this),
       new PathTileState(this),
-      new PathEndTileState(this)
+      new PathEndTileState(this),
     ];
-    if (color) this.color = tileColor;
+    if (tileColor) this.color = tileColor;
     this.currentState = this.states[TileStates.DEFAULT];
     [this.red, this.green, this.blue] = colorToRgb(this.color);
     this.currentState.enter();
@@ -61,21 +67,24 @@ class IsoTile {
   }
 
   private calculateGeometry() {
-    this.A = createVector(this.x, this.y + 0.25 * this.size);
-    this.B = createVector(this.x + 0.5 * this.size, this.y);
-    this.C = createVector(this.x + this.size, this.y + 0.25 * this.size);
-    this.D = createVector(this.x + 0.5 * this.size, this.y + 0.5 * this.size);
-    this.E = createVector(this.x, this.y + 0.75 * this.size);
-    this.F = createVector(this.x + this.size, this.y + 0.75 * this.size);
-    this.G = createVector(this.x + 0.5 * this.size, this.y + this.size);
+    this.A = p5lib.createVector(this.x, this.y + 0.25 * this.size);
+    this.B = p5lib.createVector(this.x + 0.5 * this.size, this.y);
+    this.C = p5lib.createVector(this.x + this.size, this.y + 0.25 * this.size);
+    this.D = p5lib.createVector(
+      this.x + 0.5 * this.size,
+      this.y + 0.5 * this.size
+    );
+    this.E = p5lib.createVector(this.x, this.y + 0.75 * this.size);
+    this.F = p5lib.createVector(this.x + this.size, this.y + 0.75 * this.size);
+    this.G = p5lib.createVector(this.x + 0.5 * this.size, this.y + this.size);
   }
 
   public draw() {
-    stroke(this.red * 0.3, this.green * 0.3, this.blue * 0.3);
-    strokeWeight(2);
+    p5lib.stroke(this.red * 0.3, this.green * 0.3, this.blue * 0.3);
+    p5lib.strokeWeight(2);
 
-    fill(this.red * 0.75, this.green * 0.75, this.blue * 0.75);
-    quad(
+    p5lib.fill(this.red * 0.75, this.green * 0.75, this.blue * 0.75);
+    p5lib.quad(
       this.A.x,
       this.A.y - this.hoverOffset,
       this.B.x,
@@ -86,8 +95,8 @@ class IsoTile {
       this.D.y - this.hoverOffset
     );
 
-    fill(this.red * 0.9, this.green * 0.9, this.blue * 0.9);
-    quad(
+    p5lib.fill(this.red * 0.9, this.green * 0.9, this.blue * 0.9);
+    p5lib.quad(
       this.A.x,
       this.A.y - this.hoverOffset,
       this.D.x,
@@ -98,8 +107,8 @@ class IsoTile {
       this.E.y - this.hoverOffset
     );
 
-    fill(this.red, this.green, this.blue);
-    quad(
+    p5lib.fill(this.red, this.green, this.blue);
+    p5lib.quad(
       this.D.x,
       this.D.y - this.hoverOffset,
       this.C.x,
@@ -111,7 +120,8 @@ class IsoTile {
     );
   }
 
-  public update(input: string) {
+  // input?: string
+  public update() {
     this.currentState.handleInput();
   }
 
@@ -121,9 +131,9 @@ class IsoTile {
     this.currentState.enter();
   }
 
-  public isPointInsidePolygon(x: number, y: any): boolean {
-    let pX = [this.A.x, this.B.x, this.C.x, this.D.x];
-    let pY = [this.A.y, this.B.y, this.C.y, this.D.y];
+  public isPointInsidePolygon(x: number, y: number): boolean {
+    const pX = [this.A.x, this.B.x, this.C.x, this.D.x];
+    const pY = [this.A.y, this.B.y, this.C.y, this.D.y];
     let j = pX.length - 1;
     let odd: number;
 

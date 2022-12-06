@@ -1,16 +1,36 @@
 {
   "name": "isometric-tiles",
   "version": "1.0.0",
+  "main": "../dist/main.js",
+  "module": "../dist/main.min.mjs",
+  "unpkg": "../dist/main.umd.min.js",
+  "types": "../dist/main.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "run-p start-compile start-run",
-    "start-compile": "tsc --watch",
-    "start-run": "browser-sync start --server -w"
+    "clean": "del dist /q",
+    "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx",
+    "build": "npm run clean && npm run lint && tsc --project tsconfig.build.json && npm run bundle:esm && npm run bundle:esm:min && npm run bundle:umd && npm run bundle:umd:min && npm run build:stats",
+    "build:stats": "(echo '\\033[35;3m' ; cd dist && ls -lh main*js main*gz | tail -n 2 | awk '{print $5,$9}')",
+    "bundle:esm": "rollup dist/main.js --file dist/main.mjs --format esm",
+    "bundle:esm:min": "terser --ecma 6 --compress --mangle --module -o dist/main.min.mjs -- dist/main.mjs && gzip -9 -c dist/main.min.mjs > dist/main.min.mjs.gz",
+    "bundle:umd": "rollup dist/main.js --file dist/main.umd.js --format umd --name isometric-tiles",
+    "bundle:umd:min": "terser --ecma 6 --compress --mangle -o dist/main.umd.min.js -- dist/main.umd.js && gzip -9 -c dist/main.umd.min.js > dist/main.umd.min.js.gz",
+    "start": "npm run build && npx run parcel serve src/index.html"
   },
   "devDependencies": {
     "@types/p5": "^0.9.0",
-    "browser-sync": "^2.26.12",
+    "@typescript-eslint/eslint-plugin": "^4.15.1",
+    "@typescript-eslint/parser": "^4.15.1",
+    "eslint": "^7.20.0",
     "npm-run-all": "^4.1.5",
-    "typescript": "^4.0.0"
+    "rollup": "^3.6.0",
+    "terser": "^5.16.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "p5": "^1.5.0"
   }
 }

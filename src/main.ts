@@ -1,28 +1,58 @@
-// GLOBAL VARS & TYPES
-
 // I = COL
 // J = ROW
-interface Coordinates {
-  i: number;
-  j: number;
-}
 
-const COLOR_PALETTE = {
-  BACKGROUND_DARK: "#003049",
-  TILE_PRIMARY: "#D62828",
-  TILE_SELECTED: "#F77F00",
-  TILE_PATH_END: "#FCBF49",
-  TILE_PATH: '#EAE2B7'
-};
+import * as p5 from "p5";
+import { Game } from "./game/game";
+import { InputCode } from "./inputHandler";
 
 let game: Game;
 
-// P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
-function setup() {
- game = Game.instance;
-}
+const sketch = (p: p5) => {
 
-// p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
-function draw() {
-  game.update()
-}
+  p.setup = () => {
+    game = Game.instance;
+  };
+
+  p.draw = () => {
+    game.update()
+  };
+
+  p.mousePressed = () => {
+    switch (p.mouseButton) {
+      case p.LEFT: {
+        Game.instance.lastInput = InputCode.LMB_PRESSED;
+        break;
+      }
+    }
+  };
+
+  p.mouseReleased = () => {
+    switch (p.mouseButton) {
+      case p.LEFT: {
+        Game.instance.lastInput = InputCode.LMB_RELEASED;
+        break;
+      }
+    }
+  };
+
+  p.keyPressed = () => {
+    switch (p5lib.keyCode) {
+      case p5lib.ESCAPE: {
+        Game.instance.lastInput = InputCode.ESC_PRESSED;
+        break;
+      }
+    }
+  }
+};
+
+export const p5lib = new p5(sketch);
+
+// // P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
+// function setup() {
+//  game = Game.instance;
+// }
+
+// // p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
+// function draw() {
+//   game.update()
+// }

@@ -1,9 +1,13 @@
-// TODO: Make cashing work, reset() meses cash up
+import { Coordinates } from "../interfaces/Coordinates";
+import {  p5lib } from "../main";
+import { Tile } from "./tile";
+
+// TODO: Make cashing work, reset() messes cash up
 interface Query {
   start: Tile;
   end: Tile;
 }
-class AStar {
+export class AStar {
   private cols: number;
   private rows: number;
 
@@ -34,9 +38,8 @@ class AStar {
     this.cash = new Map<Query, Tile[]>();
   }
 
-  private heuristic(a: Tile, b: Tile) {
-    var d = dist(a.i, a.j, b.i, b.j);
-    return d;
+  private heuristic(a: Tile, b: Tile): number {
+    return p5lib.dist(a.i, a.j, b.i, b.j);
   }
 
   private reset() {
@@ -71,7 +74,7 @@ class AStar {
         }
       }
 
-      let current = osArr[next];
+      const current = osArr[next];
 
       if (current === end) {
         // console.log('DONE');
@@ -83,11 +86,11 @@ class AStar {
       openSet.delete(current);
       closedSet.add(current);
 
-      let neighbors = current.neighbors;
+      const neighbors = current.neighbors;
 
       for (const neighbor of neighbors) {
         if (!closedSet.has(neighbor)) {
-          let tempGoal = current.goal + this.heuristic(neighbor, current);
+          const tempGoal = current.goal + this.heuristic(neighbor, current);
 
           let newPath = false;
           if (openSet.has(neighbor)) {
@@ -129,54 +132,4 @@ class AStar {
     // would be a good idea to check for out of boundaries
     return this.grid[coords.i][coords.j];
   }
-}
-
-class Tile {
-  public i: number;
-  public j: number;
-
-  private allowDiagonal = false;
-
-  public heuristic = 0;
-  public goal = 0;
-  public cost = 0;
-
-  public neighbors: Tile[] = [];
-  public previous: Tile | undefined = undefined;
-
-  constructor(i: number, j: number, allowDiagonal?: boolean) {
-    this.i = i;
-    this.j = j;
-    this.allowDiagonal = !!allowDiagonal;
-  }
-
-  public reset() {
-    this.heuristic = 0;
-    this.goal = 0;
-    this.cost = 0;
-
-    this.previous = undefined;
-  }
-
-  public addNeighbors = (grid: Tile[][]) => {
-    const COLS = grid.length;
-    const ROWS = grid[0].length;
-
-    const i = this.i;
-    const j = this.j;
-
-    if (i < COLS - 1) this.neighbors.push(grid[i + 1][j]);
-    if (i > 0) this.neighbors.push(grid[i - 1][j]);
-
-    if (j > 0) this.neighbors.push(grid[i][j - 1]);
-    if (j < ROWS - 1) this.neighbors.push(grid[i][j + 1]);
-
-    if (this.allowDiagonal) {
-      if (i > 0 && j > 0) this.neighbors.push(grid[i - 1][j - 1]);
-      if (i > 0 && j < ROWS - 1) this.neighbors.push(grid[i - 1][j + 1]);
-
-      if (i < COLS - 1 && j > 0) this.neighbors.push(grid[i + 1][j - 1]);
-      if (i < COLS - 1 && j > ROWS - 1) this.neighbors.push(grid[i + 1][j + 1]);
-    }
-  };
 }

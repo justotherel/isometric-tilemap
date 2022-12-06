@@ -1,11 +1,21 @@
-class Game {
+import { TileSelectedGameState } from "./states/tileSelectedGameState";
+import { GameStateType } from "../interfaces/gameStateType";
+import { IdleGameState } from "./states/idleGameState";
+import { GameState } from "./states/gameState";
+import { InputCode } from "../inputHandler";
+import { p5lib } from "../main";
+import { IsoTile } from "../tiles/isoTile";
+import { toIso } from "../utils";
+import { AStar } from "../pathfinding/aStar";
+
+export class Game {
   private static _instance: Game;
 
-  public FRAME_RATE = 60;
-  public WIDTH = 600;
-  public HEIGHT = 600;
+  public FRAME_RATE = 30;
+  public WIDTH = 900;
+  public HEIGHT = 900;
   public GRID_SIZE = 10;
-  public TILE_SIZE: number;
+  public TILE_SIZE = 90;
 
   public aStar: AStar;
 
@@ -13,8 +23,8 @@ class Game {
     BACKGROUND_DARK: "#003049",
     TILE_PRIMARY: "#D62828",
     TILE_SELECTED: "#F77F00",
-    TILE_PATH_END: '#EAE2B7', 
-    TILE_PATH: "#FCBF49"
+    TILE_PATH_END: "#EAE2B7",
+    TILE_PATH: "#FCBF49",
   };
 
   public lastInput = InputCode.NONE;
@@ -48,8 +58,8 @@ class Game {
     console.log(
       "🚀 - Setup initialized within Game Object - P5 and Game logic is running"
     );
-    createCanvas(this.WIDTH, this.HEIGHT);
-    frameRate(this.FRAME_RATE);
+    p5lib.createCanvas(this.WIDTH, this.HEIGHT);
+    p5lib.frameRate(this.FRAME_RATE);
 
     this.cols = this.GRID_SIZE;
     this.rows = this.GRID_SIZE;
@@ -71,7 +81,7 @@ class Game {
             x: iso.x + this.WIDTH / 2,
             y: iso.y + this.HEIGHT / 4,
             size: this.TILE_SIZE,
-            tileColor: color(this.COLOR_PALETTE.TILE_PRIMARY)
+            tileColor: p5lib.color(this.COLOR_PALETTE.TILE_PRIMARY),
           })
         );
       }
@@ -79,18 +89,18 @@ class Game {
   }
 
   private drawLastInputStatusText() {
-    textSize(32);
-    text(`Last input: ${this.lastInput}`, 10, 30);
+    p5lib.textSize(32);
+    p5lib.text(`Last input: ${this.lastInput}`, 10, 30);
   }
 
-  public setState(state: GameStateType, payload?: object) {
+  public setState(state: GameStateType, payload?: unknown) {
     this.currentState.exit();
     this.currentState = this.states[state];
     this.currentState.enter(payload);
   }
 
   public update() {
-    background(this.COLOR_PALETTE.BACKGROUND_DARK);
+    p5lib.background(this.COLOR_PALETTE.BACKGROUND_DARK);
     this.grid.forEach((el) => el.draw());
     this.currentState.run(this.lastInput);
     this.drawLastInputStatusText();

@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
-    "module": "none",
     "noImplicitAny": true,
-    "outFile": "./build/build.js",
     "preserveConstEnums": true,
+
+    "declaration": true,
+    "lib": ["es6", "dom", "dom.iterable"],
+    "module": "es6",
+    "moduleResolution": "node",
     "removeComments": true,
-    "rootDir": "src",
     "sourceMap": true,
     "target": "es6",
-    "moduleResolution": "node"
-  }
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"]
 }
