@@ -1,5 +1,5 @@
 import { Game } from "../game";
-import { InputCode } from "../../inputHandler";
+import { InputCode } from "../../interfaces/inputCodes"
 import { p5lib } from "../../main";
 import { GameState } from "./gameState";
 import { GameStateType } from "../../interfaces/gameStateType";

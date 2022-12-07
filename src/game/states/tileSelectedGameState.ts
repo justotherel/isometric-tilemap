@@ -1,5 +1,5 @@
 import { Game } from "../game";
-import { InputCode } from "../../inputHandler";
+import { InputCode } from "../../interfaces/inputCodes";
 import { p5lib } from "../../main";
 import { TileStates } from "../../interfaces/tileStates";
 import { isEqual, toIndex } from "../../utils";

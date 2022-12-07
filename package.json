@@ -12,13 +12,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "del dist /q",
     "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx",
-    "build": "npm run clean && npm run lint && tsc --project tsconfig.build.json && npm run bundle:esm && npm run bundle:esm:min && npm run bundle:umd && npm run bundle:umd:min && npm run build:stats",
+    "build": "npm run clean && npm run lint && tsc --project tsconfig.build.json && npm run bundle:esm",
+    "build2": "npm run clean && npm run lint && tsc --project tsconfig.build.json && npm run bundle:esm && npm run bundle:esm:min && npm run bundle:umd && npm run bundle:umd:min && npm run build:stats",
     "build:stats": "(echo '\\033[35;3m' ; cd dist && ls -lh main*js main*gz | tail -n 2 | awk '{print $5,$9}')",
     "bundle:esm": "rollup dist/main.js --file dist/main.mjs --format esm",
     "bundle:esm:min": "terser --ecma 6 --compress --mangle --module -o dist/main.min.mjs -- dist/main.mjs && gzip -9 -c dist/main.min.mjs > dist/main.min.mjs.gz",
     "bundle:umd": "rollup dist/main.js --file dist/main.umd.js --format umd --name isometric-tiles",
     "bundle:umd:min": "terser --ecma 6 --compress --mangle -o dist/main.umd.min.js -- dist/main.umd.js && gzip -9 -c dist/main.umd.min.js > dist/main.umd.min.js.gz",
-    "start": "npm run build && npx run parcel serve src/index.html"
+    "start": "npm run build && npx parcel serve src/index.html"
   },
   "devDependencies": {
     "@types/p5": "^0.9.0",

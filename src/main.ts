@@ -3,7 +3,7 @@
 
 import * as p5 from "p5";
 import { Game } from "./game/game";
-import { InputCode } from "./inputHandler";
+import { InputCode } from "./interfaces/inputCodes";
 
 let game: Game;
 

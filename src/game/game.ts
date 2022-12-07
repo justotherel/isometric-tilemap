@@ -2,7 +2,7 @@ import { TileSelectedGameState } from "./states/tileSelectedGameState";
 import { GameStateType } from "../interfaces/gameStateType";
 import { IdleGameState } from "./states/idleGameState";
 import { GameState } from "./states/gameState";
-import { InputCode } from "../inputHandler";
+import { InputCode } from "../interfaces/inputCodes";
 import { p5lib } from "../main";
 import { IsoTile } from "../tiles/isoTile";
 import { toIso } from "../utils";

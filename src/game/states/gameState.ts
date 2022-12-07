@@ -2,7 +2,7 @@ import { Game } from "../game";
 import { p5lib } from "../../main";
 import { TileStates } from "../../interfaces/tileStates";
 import { GameStateType } from "../../interfaces/gameStateType";
-import { InputCode } from "../../inputHandler";
+import { InputCode } from "../../interfaces/inputCodes";
 
 export class GameState {
   public state: GameStateType;

@@ -1,6 +1,4 @@
 node_modules/
 .vscode/
-**/*.js
-**/*.js.map
 dist/
 .parcel-cache
