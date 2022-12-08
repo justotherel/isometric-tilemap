@@ -4,6 +4,8 @@ export class Tile {
 
   private allowDiagonal = false;
 
+  public isNavigable: boolean;
+
   public heuristic = 0;
   public goal = 0;
   public cost = 0;
@@ -11,9 +13,15 @@ export class Tile {
   public neighbors: Tile[] = [];
   public previous: Tile | undefined = undefined;
 
-  constructor(i: number, j: number, allowDiagonal?: boolean) {
+  constructor(
+    i: number,
+    j: number,
+    isNavigable: boolean,
+    allowDiagonal?: boolean
+  ) {
     this.i = i;
     this.j = j;
+    this.isNavigable = isNavigable;
     this.allowDiagonal = !!allowDiagonal;
   }
 

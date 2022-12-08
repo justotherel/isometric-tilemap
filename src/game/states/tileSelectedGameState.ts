@@ -1,12 +1,11 @@
-import { Game } from "../game";
-import { InputCode } from "../../interfaces/inputCodes";
-import { p5lib } from "../../main";
-import { TileStates } from "../../interfaces/tileStates";
-import { isEqual, toIndex } from "../../utils";
-import { GameState } from "./gameState";
-import { Tile } from "../../pathfinding/tile";
 import { Coordinates } from "../../interfaces/Coordinates";
 import { GameStateType } from "../../interfaces/gameStateType";
+import { InputCode } from "../../interfaces/inputCodes";
+import { TileStates } from "../../interfaces/tileStates";
+import { game, p5lib } from "../../main";
+import { Tile } from "../../mapSystem/pathfinding/tile";
+import { isEqual } from "../../utils";
+import { GameState } from "./gameState";
 
 export class TileSelectedGameState extends GameState {
   constructor() {
@@ -15,6 +14,8 @@ export class TileSelectedGameState extends GameState {
 
   private start: Coordinates | undefined;
   private end: Coordinates | undefined;
+  private previousEnd: Coordinates | undefined;
+  private previousValidEnd: Coordinates | undefined;
   private path: Tile[] | undefined;
 
   // kinda dangerous and whack
@@ -26,24 +27,25 @@ export class TileSelectedGameState extends GameState {
     this.clearPath();
     this.start = undefined;
     this.end = undefined;
+    this.previousEnd = undefined;
+    this.previousValidEnd = undefined;
+    this.path = undefined;
   }
 
   public override run(input?: InputCode) {
-    for (const tile of Game.instance.grid) {
+    // would need to be rewrtitten when 3rd dimension added
+    for (const tile of game.grid) {
       if (tile.isPointInsidePolygon(p5lib.mouseX, p5lib.mouseY)) {
         tile.setState(TileStates.HOVERED);
+        const newEnd = { i: tile.i, j: tile.j };
+
         if (this.end) {
-          if (
-            isEqual(this.end, {
-              i: tile.i,
-              j: tile.j,
-            })
-          )
-            break;
+          if (isEqual(this.end, newEnd)) break;
+          this.previousEnd = { i: this.end.i, j: this.end.j };
           this.clearPath();
         }
 
-        this.end = { i: tile.i, j: tile.j };
+        this.end = newEnd;
         this.setPath();
         break;
       }
@@ -51,32 +53,56 @@ export class TileSelectedGameState extends GameState {
 
     switch (input) {
       case InputCode.ESC_PRESSED: {
-        Game.instance.setState(GameStateType.IDLE);
+        game.setState(GameStateType.IDLE);
         break;
       }
     }
   }
 
+  // this is where neihgbors of each cell would come in handy
+  // checking all the cell's neighbors to find a nearst path to it would've been a solution
+  // alternatively, we can store last valid path and backtrack to it anytime we encounter multiple unreachable tiles in a row
   private setPath() {
-    this.path = Game.instance.aStar.findPath(
-      Game.instance.aStar.getTile(this.start),
-      Game.instance.aStar.getTile(this.end)
+    this.path = game.mapSystem.getPath(this.start, this.end);
+
+    if (this.path) {
+      this.previousValidEnd = { i: this.end.i, j: this.end.j };
+    }
+
+    if (!this.path && this.previousValidEnd === undefined) {
+      game.grid[game.toIndex(this.start.i, this.start.j)].setState(
+        TileStates.SELECTED
+      );
+      return;
+    }
+
+    if (!this.path && this.previousValidEnd !== undefined) {
+      this.path = game.mapSystem.getPath(this.start, this.previousValidEnd);
+    }
+
+    this.path.forEach((el) => {
+      const tileIndex = game.toIndex(el.i, el.j);
+      game.grid[tileIndex].setState(TileStates.PATH);
+    });
+    const last = this.path[this.path.length - 1];
+    game.grid[game.toIndex(this.path[0].i, this.path[0].j)].setState(
+      TileStates.PATH_END
     );
-    if (this.path)
-      this.path.forEach((el, index) => {
-        const tileIndex = toIndex(el.i, el.j);
-        if (index === this.path!.length - 1) {
-          Game.instance.grid[tileIndex].setState(TileStates.PATH_END);
-        } else {
-          Game.instance.grid[tileIndex].setState(TileStates.PATH);
-        }
-      });
+    game.grid[game.toIndex(last.i, last.j)].setState(TileStates.SELECTED);
   }
 
   private clearPath() {
+    game.grid[game.toIndex(this.start.i, this.start.j)].setState(
+      TileStates.DEFAULT
+    );
+    if (this.previousEnd) {
+      game.grid[game.toIndex(this.previousEnd.i, this.previousEnd.j)].setState(
+        TileStates.DEFAULT
+      );
+    }
     if (this.path)
       this.path.forEach((el) =>
-        Game.instance.grid[toIndex(el.i, el.j)].setState(TileStates.DEFAULT)
+        game.grid[game.toIndex(el.i, el.j)].setState(TileStates.DEFAULT)
       );
   }
 }

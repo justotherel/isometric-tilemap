@@ -1,31 +1,34 @@
-import { Coordinates } from "../interfaces/Coordinates";
-import {  p5lib } from "../main";
+import { Coordinates } from "../../interfaces/Coordinates";
+import { p5lib } from "../../main";
+import { LogicalTile } from "../logicalTile";
 import { Tile } from "./tile";
 
-// TODO: Make cashing work, reset() messes cash up
-interface Query {
-  start: Tile;
-  end: Tile;
-}
 export class AStar {
   private cols: number;
   private rows: number;
 
-  private cash: Map<Query, Tile[]>;
-
   public grid: Tile[][] = [];
 
-  constructor(cols: number, rows: number) {
-    this.cols = cols;
-    this.rows = rows;
+  constructor(options: { groundLevel?: LogicalTile[] }) {
+    const { groundLevel } = options;
+    if (groundLevel) this.configureGrid(groundLevel);
+  }
 
-    for (let i = 0; i < cols; i++) {
-      this.grid[i] = new Array(this.rows);
+  public configureGrid(groundLevel: LogicalTile[]) {
+    this.cols = Math.max(...groundLevel.map((el) => el.i)) + 1;
+    this.rows = Math.max(...groundLevel.map((el) => el.j)) + 1;
+
+    for (let i = 0; i < this.cols; i++) {
+      this.grid[i] = new Array(this.rows).fill(undefined);
     }
 
     for (let i = 0; i < this.cols; i++) {
       for (let j = 0; j < this.rows; j++) {
-        this.grid[i][j] = new Tile(i, j);
+        this.grid[i][j] = new Tile(
+          i,
+          j,
+          groundLevel[this.toIndex(i, j)].isNavigable
+        );
       }
     }
 
@@ -34,30 +37,12 @@ export class AStar {
         this.grid[i][j].addNeighbors(this.grid);
       }
     }
-
-    this.cash = new Map<Query, Tile[]>();
-  }
-
-  private heuristic(a: Tile, b: Tile): number {
-    return p5lib.dist(a.i, a.j, b.i, b.j);
-  }
-
-  private reset() {
-    for (let i = 0; i < this.cols; i++) {
-      for (let j = 0; j < this.rows; j++) {
-        this.grid[i][j].reset();
-      }
-    }
   }
 
   public findPath(start: Tile, end: Tile): Tile[] | undefined {
-    // this might make cash always empty ?
     this.reset();
 
-    // cash is indeed always empty
-    if (this.cash.has({ start, end })) {
-      return this.cash.get({ start, end });
-    }
+    if (!start.isNavigable) return undefined;
 
     const openSet = new Set<Tile>();
     const closedSet = new Set<Tile>();
@@ -79,7 +64,6 @@ export class AStar {
       if (current === end) {
         // console.log('DONE');
         const path = this.getPath(current);
-        this.cash.set({ start, end }, path);
         return path;
       }
 
@@ -89,7 +73,7 @@ export class AStar {
       const neighbors = current.neighbors;
 
       for (const neighbor of neighbors) {
-        if (!closedSet.has(neighbor)) {
+        if (!closedSet.has(neighbor) && neighbor.isNavigable) {
           const tempGoal = current.goal + this.heuristic(neighbor, current);
 
           let newPath = false;
@@ -128,8 +112,24 @@ export class AStar {
     return path;
   }
 
+  private heuristic(a: Tile, b: Tile): number {
+    return p5lib.dist(a.i, a.j, b.i, b.j);
+  }
+
+  private reset() {
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        this.grid[i][j].reset();
+      }
+    }
+  }
+
   public getTile(coords: Coordinates) {
     // would be a good idea to check for out of boundaries
     return this.grid[coords.i][coords.j];
+  }
+
+  private toIndex(i: number, j: number) {
+    return i * this.rows + j;
   }
 }

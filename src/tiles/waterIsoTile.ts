@@ -3,8 +3,7 @@ import { p5lib } from "../main";
 import { IsoTile } from "./isoTile";
 import { COLOR_PALETTE } from "../constants";
 
-export class GroundIsoTile extends IsoTile {
-
+export class WaterIsoTile extends IsoTile {
   constructor(options: {
     i: number;
     j: number;
@@ -19,8 +18,8 @@ export class GroundIsoTile extends IsoTile {
       x,
       y,
       size,
-      type: TileTypes.GROUND,
-      tileColor: p5lib.color(COLOR_PALETTE.TILE_GROUND),
+      type: TileTypes.WATER,
+      tileColor: p5lib.color(COLOR_PALETTE.TILE_WATER),
     });
   }
 }

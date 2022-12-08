@@ -1,14 +1,14 @@
 import * as p5 from "p5";
+import { TileStates } from "../interfaces/tileStates";
+import { TileTypes } from "../interfaces/tileTypes";
 import { p5lib } from "../main";
 import { colorToRgb } from "../utils";
-import { TileSate } from "./states/tileState";
-import { PathEndTileState } from "./states/pathEndTileState";
-import { TileStates } from "../interfaces/tileStates";
-import { PathTileState } from "./states/pathTileState";
-import { HoveredTileState } from "./states/hoveredTileState";
-import { SelectedTileState } from "./states/selectedTileState";
 import { DefaultTileState } from "./states/defaultTileState";
-import { COLOR_PALETTE } from "../constants";
+import { HoveredTileState } from "./states/hoveredTileState";
+import { PathEndTileState } from "./states/pathEndTileState";
+import { PathTileState } from "./states/pathTileState";
+import { SelectedTileState } from "./states/selectedTileState";
+import { TileSate } from "./states/tileState";
 
 export class IsoTile {
   public i: number;
@@ -17,12 +17,14 @@ export class IsoTile {
   public y: number;
   public size: number;
 
-  public color = p5lib.color(COLOR_PALETTE.TILE_PRIMARY);
+  public color: p5.Color;
+  public readonly defaultColor: p5.Color;
 
   public red: number;
   public green: number;
   public blue: number;
 
+  public type: TileTypes;
   public states: TileSate[];
   public currentState: TileSate;
 
@@ -42,15 +44,18 @@ export class IsoTile {
     x: number;
     y: number;
     size: number;
-    tileColor?: p5.Color;
+    type: TileTypes;
+    tileColor: p5.Color;
   }) {
-    const { i, j, x, y, size, tileColor } = options;
+    const { i, j, x, y, size, type, tileColor } = options;
 
     this.i = i;
     this.j = j;
     this.x = x;
     this.y = y;
     this.size = size;
+
+    this.type = type;
 
     this.states = [
       new DefaultTileState(this),
@@ -59,9 +64,12 @@ export class IsoTile {
       new PathTileState(this),
       new PathEndTileState(this),
     ];
-    if (tileColor) this.color = tileColor;
-    this.currentState = this.states[TileStates.DEFAULT];
+
+    this.color = tileColor;
+    this.defaultColor = tileColor;
     [this.red, this.green, this.blue] = colorToRgb(this.color);
+
+    this.currentState = this.states[TileStates.DEFAULT];
     this.currentState.enter();
     this.calculateGeometry();
   }
