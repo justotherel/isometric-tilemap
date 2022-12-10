@@ -62,7 +62,7 @@ export class AStar {
       const current = osArr[next];
 
       if (current === end) {
-        // console.log('DONE');
+        // DONE
         const path = this.getPath(current);
         return path;
       }
@@ -97,7 +97,7 @@ export class AStar {
       }
     }
 
-    // console.log('No solution');
+    // No solution
     return undefined;
   }
 

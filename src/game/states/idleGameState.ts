@@ -13,9 +13,8 @@ export class IdleGameState extends GameState {
 
     switch (input) {
       case InputCode.LMB_PRESSED: {
-        for (const tile of game.grid) {
+        for (const tile of game.gameGrid) {
           if (tile.isPointInsidePolygon(p5lib.mouseX, p5lib.mouseY)) {
-            console.log('selected tile', tile.i, tile.j)
             game.setState(GameStateType.TILE_SELECTED, {
               selectedTile: {
                 i: tile.i,

@@ -34,7 +34,7 @@ export class TileSelectedGameState extends GameState {
 
   public override run(input?: InputCode) {
     // would need to be rewrtitten when 3rd dimension added
-    for (const tile of game.grid) {
+    for (const tile of game.gameGrid) {
       if (tile.isPointInsidePolygon(p5lib.mouseX, p5lib.mouseY)) {
         tile.setState(TileStates.HOVERED);
         const newEnd = { i: tile.i, j: tile.j };
@@ -70,7 +70,7 @@ export class TileSelectedGameState extends GameState {
     }
 
     if (!this.path && this.previousValidEnd === undefined) {
-      game.grid[game.toIndex(this.start.i, this.start.j)].setState(
+      game.gameGrid[game.toIndex(this.start.i, this.start.j)].setState(
         TileStates.SELECTED
       );
       return;
@@ -82,27 +82,27 @@ export class TileSelectedGameState extends GameState {
 
     this.path.forEach((el) => {
       const tileIndex = game.toIndex(el.i, el.j);
-      game.grid[tileIndex].setState(TileStates.PATH);
+      game.gameGrid[tileIndex].setState(TileStates.PATH);
     });
     const last = this.path[this.path.length - 1];
-    game.grid[game.toIndex(this.path[0].i, this.path[0].j)].setState(
+    game.gameGrid[game.toIndex(this.path[0].i, this.path[0].j)].setState(
       TileStates.PATH_END
     );
-    game.grid[game.toIndex(last.i, last.j)].setState(TileStates.SELECTED);
+    game.gameGrid[game.toIndex(last.i, last.j)].setState(TileStates.SELECTED);
   }
 
   private clearPath() {
-    game.grid[game.toIndex(this.start.i, this.start.j)].setState(
+    game.gameGrid[game.toIndex(this.start.i, this.start.j)].setState(
       TileStates.DEFAULT
     );
     if (this.previousEnd) {
-      game.grid[game.toIndex(this.previousEnd.i, this.previousEnd.j)].setState(
-        TileStates.DEFAULT
-      );
+      game.gameGrid[
+        game.toIndex(this.previousEnd.i, this.previousEnd.j)
+      ].setState(TileStates.DEFAULT);
     }
     if (this.path)
       this.path.forEach((el) =>
-        game.grid[game.toIndex(el.i, el.j)].setState(TileStates.DEFAULT)
+        game.gameGrid[game.toIndex(el.i, el.j)].setState(TileStates.DEFAULT)
       );
   }
 }

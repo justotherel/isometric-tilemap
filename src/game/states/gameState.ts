@@ -18,7 +18,7 @@ export class GameState {
   // input?: InputCode
   public run(input?: InputCode) {
     if (input) true;
-    for (const tile of game.grid) {
+    for (const tile of game.gameGrid) {
       if (tile.isPointInsidePolygon(p5lib.mouseX, p5lib.mouseY)) {
         tile.setState(TileStates.HOVERED);
         // could cause preformance issues if we were to have gorrilion tiles?

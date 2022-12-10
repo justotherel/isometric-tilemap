@@ -16,8 +16,9 @@ export class LogicalTile {
     k: number;
     type: TileTypes;
     isNavigable?: boolean;
+    isAtGroundLevel?: boolean;
   }) {
-    const { i, j, k, type, isNavigable } = options;
+    const { i, j, k, type, isNavigable, isAtGroundLevel } = options;
 
     this.i = i;
     this.j = j;
@@ -25,5 +26,6 @@ export class LogicalTile {
     this.type = type;
 
     if (isNavigable) this.isNavigable = isNavigable;
+    if (isAtGroundLevel) this.isAtGroundLevel = isAtGroundLevel;
   }
 }

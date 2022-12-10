@@ -36,6 +36,7 @@ export class Game {
   public cols: number;
 
   public grid: IsoTile[] = [];
+  public gameGrid: IsoTile[] = [];
 
   private constructor(gameParams?: {
     canvasWidth?: number;
@@ -76,33 +77,45 @@ export class Game {
         tile.j * this.TILE_SIZE
       );
 
+      let isoTile: IsoTile;
+
       switch (tile.type) {
         case TileTypes.GROUND: {
-          this.grid.push(
-            new GroundIsoTile({
-              i: tile.i,
-              j: tile.j,
-              x: iso.x + this.WIDTH / 2,
-              y: iso.y + this.HEIGHT / 4,
-              size: this.TILE_SIZE,
-            })
-          );
+          isoTile = new GroundIsoTile({
+            i: tile.i,
+            j: tile.j,
+            x: iso.x + this.WIDTH / 2,
+            y:
+              iso.y +
+              this.HEIGHT / 2 -
+              0.5 * tile.k * this.TILE_SIZE -
+              this.TILE_SIZE,
+            size: this.TILE_SIZE,
+          });
           break;
         }
         case TileTypes.WATER: {
-          this.grid.push(
-            new WaterIsoTile({
-              i: tile.i,
-              j: tile.j,
-              x: iso.x + this.WIDTH / 2,
-              y: iso.y + this.HEIGHT / 4,
-              size: this.TILE_SIZE,
-            })
-          );
+          isoTile = new WaterIsoTile({
+            i: tile.i,
+            j: tile.j,
+            x: iso.x + this.WIDTH / 2,
+            y:
+              iso.y +
+              this.HEIGHT / 2 -
+              0.5 * tile.k * this.TILE_SIZE -
+              this.TILE_SIZE,
+            size: this.TILE_SIZE,
+          });
+
           break;
         }
         default:
           throw new Error("UNKNOWN TYPE OF TILE PASSED TO ISO TILE CREATION");
+      }
+
+      this.grid.push(isoTile);
+      if (tile.isAtGroundLevel) {
+        this.gameGrid.push(isoTile);
       }
     });
   }

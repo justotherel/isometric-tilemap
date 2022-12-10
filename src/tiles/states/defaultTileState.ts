@@ -3,6 +3,7 @@ import { colorToRgb } from "../../utils";
 import { IsoTile } from "../isoTile";
 import { TileSate } from "./tileState";
 import { TileStates } from "../../interfaces/tileStates";
+
 export class DefaultTileState extends TileSate {
   private tile: IsoTile;
 
