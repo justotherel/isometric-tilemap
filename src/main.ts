@@ -52,7 +52,12 @@ const sketch = (p: p5) => {
         break;
       }
       case KeyCodes.A: {
-        game.lastInput = InputCode.A_KEY_PRESSSED
+        game.lastInput = InputCode.A_KEY_PRESSSED;
+        break;
+      }
+      case KeyCodes.D: {
+        game.lastInput = InputCode.D_KEY_PRESSED;
+        break;
       }
     }
   };
@@ -68,7 +73,12 @@ const sketch = (p: p5) => {
         break;
       }
       case KeyCodes.A: {
-        game.lastInput = InputCode.A_KEY_RELEASED
+        game.lastInput = InputCode.A_KEY_RELEASED;
+        break;
+      }
+      case KeyCodes.D: {
+        game.lastInput = InputCode.D_KEY_RELEASED;
+        break;
       }
     }
   };

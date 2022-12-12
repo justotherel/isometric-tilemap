@@ -5,12 +5,12 @@ import { game, p5lib } from "../../../../main";
 import { GameState } from "../../../states/gameState";
 import EditorMode, { EditorModeStates } from "../editorMode";
 
-export class AddTileEditorState extends GameState {
+export class DeleteTileEditorState extends GameState {
   private editorModeObj: EditorMode;
 
-  constructor(editModeObj: EditorMode) {
-    super(EditorModeStates.ADD_TILE);
-    this.editorModeObj = editModeObj;
+  constructor(editorModeObj: EditorMode) {
+    super(EditorModeStates.REMOVE_TILE);
+    this.editorModeObj = editorModeObj;
   }
 
   public run(input: InputCode) {
@@ -34,12 +34,12 @@ export class AddTileEditorState extends GameState {
           break;
         }
         if (
-          this.editorModeObj.editorGrid[currentTileIndex].type ===
+          this.editorModeObj.editorGrid[currentTileIndex].type !==
           TileTypes.PLACEHOLDER
         ) {
           this.editorModeObj.editorGrid[currentTileIndex] =
             this.editorModeObj.createNewTile(
-              TileTypes.GROUND,
+              TileTypes.PLACEHOLDER,
               this.editorModeObj.editorGrid[currentTileIndex]
             );
           game.grid = this.editorModeObj.getGridToDraw();
@@ -56,8 +56,8 @@ export class AddTileEditorState extends GameState {
         game.grid = this.editorModeObj.getGridToDraw();
         break;
       }
-      case InputCode.D_KEY_PRESSED: {
-        this.editorModeObj.setState(EditorModeStates.REMOVE_TILE);
+      case InputCode.A_KEY_PRESSSED: {
+        this.editorModeObj.setState(EditorModeStates.ADD_TILE);
         break;
       }
       default:

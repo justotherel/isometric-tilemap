@@ -1,10 +1,12 @@
 import { TileTypes } from "../../../interfaces/tileTypes";
 import { game } from "../../../main";
 import { EditorPlaceholderIsoTile } from "../../../tiles/editorPlaceholdIsoTile";
+import { GroundIsoTile } from "../../../tiles/groundTile";
 import { IsoTile } from "../../../tiles/isoTile";
 import { GameState } from "../../states/gameState";
 import GameMode from "../gameMode";
 import { AddTileEditorState } from "./states/addTileEditorState";
+import { DeleteTileEditorState } from "./states/deleteTileEditorState";
 import { IdleEditorState } from "./states/idleEditorState";
 
 export enum EditorModeStates {
@@ -17,6 +19,7 @@ export default class EditorMode extends GameMode {
   public states: GameState[] = [
     new IdleEditorState(this),
     new AddTileEditorState(this),
+    new DeleteTileEditorState(this),
   ];
   public currentState: GameState;
 
@@ -63,6 +66,26 @@ export default class EditorMode extends GameMode {
     return this.editorGrid.filter(
       (el) => el.k === this._currentLevel || el.type !== TileTypes.PLACEHOLDER
     );
+  }
+
+  public createNewTile(type?: TileTypes, tileToCopyFrom?: IsoTile): IsoTile {
+    const { i, j, k, x, y, size } = tileToCopyFrom;
+    if (typeof type === undefined) type = TileTypes.GROUND;
+    switch (type) {
+      case TileTypes.GROUND: {
+        return new GroundIsoTile({
+          i,
+          j,
+          k,
+          x,
+          y,
+          size,
+        });
+      }
+      case TileTypes.PLACEHOLDER: {
+        return new EditorPlaceholderIsoTile({ i, j, k, x, y, size });
+      }
+    }
   }
 
   public run() {

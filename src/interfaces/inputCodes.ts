@@ -8,5 +8,7 @@ export enum InputCode {
   ARROW_DOWN_PRESSED = "arrow down key pressed",
   ARROW_DOWN_RELEASED = "arrow down key released",
   A_KEY_PRESSSED = '"A" key pressed',
-  A_KEY_RELEASED = '"A" key released'
+  A_KEY_RELEASED = '"A" key released',
+  D_KEY_PRESSED = '"D" key pressed',
+  D_KEY_RELEASED = '"D" key released',
 }
