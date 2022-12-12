@@ -2,11 +2,12 @@ import { game, p5lib } from "../../main";
 import { TileStates } from "../../interfaces/tileStates";
 import { GameStateType } from "../../interfaces/gameStateType";
 import { InputCode } from "../../interfaces/inputCodes";
+import { EditorModeStates } from "../gameModes/editorGameMode/editorMode";
 
 export class GameState {
-  public state: GameStateType;
+  public state: GameStateType | EditorModeStates;
 
-  constructor(state: GameStateType) {
+  constructor(state: GameStateType | EditorModeStates) {
     this.state = state;
   }
 
@@ -15,9 +16,8 @@ export class GameState {
   }
 
   // Handles tile hovering
-  // input?: InputCode
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public run(input?: InputCode) {
-    if (input) true;
     for (const tile of game.gameGrid) {
       if (tile.isPointInsidePolygon(p5lib.mouseX, p5lib.mouseY)) {
         tile.setState(TileStates.HOVERED);

@@ -6,9 +6,11 @@ import { InputCode } from "../interfaces/inputCodes";
 import { TileTypes } from "../interfaces/tileTypes";
 import { p5lib } from "../main";
 import { MapSystem } from "../mapSystem/index";
-import { GroundIsoTile } from "../tiles/gorundTile";
+import { GroundIsoTile } from "../tiles/groundTile";
 import { IsoTile } from "../tiles/isoTile";
 import { WaterIsoTile } from "../tiles/waterIsoTile";
+import EditorMode from "./gameModes/editorGameMode/editorMode";
+import GameMode, { GameModes } from "./gameModes/gameMode";
 import { GameState } from "./states/gameState";
 import { IdleGameState } from "./states/idleGameState";
 import { TileSelectedGameState } from "./states/tileSelectedGameState";
@@ -31,6 +33,9 @@ export class Game {
     new TileSelectedGameState(),
   ];
   private currentState: GameState;
+
+  private modes: GameMode[] = [new EditorMode()];
+  private currentMode: GameMode;
 
   public rows: number;
   public cols: number;
@@ -62,12 +67,12 @@ export class Game {
     this.cols = this.GRID_SIZE;
     this.rows = this.GRID_SIZE;
 
-    this.currentState = this.states[GameStateType.IDLE];
-
     this.mapSystem = new MapSystem();
 
-    this.mapSystem.generateMap({});
-    this.populateGrid();
+    this.currentState = this.states[GameStateType.IDLE];
+
+    // this.mapSystem.generateMap({});
+    // this.populateGrid();
   }
 
   private populateGrid() {
@@ -127,6 +132,14 @@ export class Game {
     p5lib.text(`Last input: ${this.lastInput}`, 10, 30);
   }
 
+  public setMode(mode: GameModes) {
+    if (this.currentMode) {
+      this.currentMode.exit();
+    }
+    this.currentMode = this.modes[mode];
+    this.currentMode.enter();
+  }
+
   public setState(state: GameStateType, payload?: unknown) {
     this.currentState.exit();
     this.currentState = this.states[state];
@@ -136,7 +149,8 @@ export class Game {
   public update() {
     p5lib.background(COLOR_PALETTE.BACKGROUND_DARK);
     this.grid.forEach((el) => el.draw());
-    this.currentState.run(this.lastInput);
+    this.currentMode.run();
+    // this.currentState.run(this.lastInput);
     this.drawLastInputStatusText();
   }
 

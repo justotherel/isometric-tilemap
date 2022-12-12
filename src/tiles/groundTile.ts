@@ -8,14 +8,16 @@ export class GroundIsoTile extends IsoTile {
   constructor(options: {
     i: number;
     j: number;
+    k?: number;
     x: number;
     y: number;
     size: number;
   }) {
-    const { i, j, x, y, size } = options;
+    const { i, j, k, x, y, size } = options;
     super({
       i,
       j,
+      k,
       x,
       y,
       size,

@@ -13,6 +13,7 @@ import { TileSate } from "./states/tileState";
 export class IsoTile {
   public i: number;
   public j: number;
+  public k: number;
   public x: number;
   public y: number;
   public size: number;
@@ -30,27 +31,31 @@ export class IsoTile {
 
   public hoverOffset = 0;
 
-  private A: p5.Vector;
-  private B: p5.Vector;
-  private C: p5.Vector;
-  private D: p5.Vector;
-  private E: p5.Vector;
-  private F: p5.Vector;
-  private G: p5.Vector;
+  protected A: p5.Vector;
+  protected B: p5.Vector;
+  protected C: p5.Vector;
+  protected D: p5.Vector;
+  protected E: p5.Vector;
+  protected F: p5.Vector;
+  protected G: p5.Vector;
 
   constructor(options: {
     i: number;
     j: number;
+    k?: number;
     x: number;
     y: number;
     size: number;
     type: TileTypes;
     tileColor: p5.Color;
   }) {
-    const { i, j, x, y, size, type, tileColor } = options;
+    const { i, j, k, x, y, size, type, tileColor } = options;
 
     this.i = i;
     this.j = j;
+
+    if (typeof k !== undefined) this.k = k;
+
     this.x = x;
     this.y = y;
     this.size = size;

@@ -6,7 +6,7 @@ import { Coordinates } from "../interfaces/Coordinates";
 export class MapSystem {
   private cols: number;
   private rows: number;
-  private levels: number;
+  private _levels: number;
 
   public grid: LogicalTile[];
   public groundLevel: LogicalTile[];
@@ -19,44 +19,54 @@ export class MapSystem {
     this.groundLevel = [];
   }
 
-  public generateMap(options: {
-    cols?: number;
-    rows?: number;
-    levels?: number;
+  public assignDimensions(options: {
+    cols: number;
+    rows: number;
+    levels: number;
   }) {
-    const { cols = 10, rows = 10, levels = 5 } = options;
+    const { cols, rows, levels } = options;
 
     this.cols = cols;
     this.rows = rows;
     this.levels = levels;
 
-    this.grid = new Array(cols * rows * levels)
-      .fill(undefined)
-      .map((_, index) => {
-        const coodrinates = this.to3D(index);
-        let type: TileTypes;
-        let isNavigable: boolean;
-        let isAtGroundLevel: boolean;
+    this.grid = new Array(cols * rows * levels).fill(undefined);
+  }
 
-        if (coodrinates[2] === levels - 1) {
-          type = Math.random() > 0.4 ? TileTypes.GROUND : TileTypes.WATER;
-          isNavigable = type === TileTypes.GROUND ? true : false;
-          isAtGroundLevel = true;
-        } else {
-          type = TileTypes.GROUND;
-          isNavigable = false;
-          isAtGroundLevel = false;
-        }
+  public generateMap(options: {
+    cols?: number;
+    rows?: number;
+    levels?: number;
+  }) {
+    const { cols = 10, rows = 10, levels = 1 } = options;
 
-        return new LogicalTile({
-          i: coodrinates[0],
-          j: coodrinates[1],
-          k: coodrinates[2],
-          type,
-          isNavigable,
-          isAtGroundLevel,
-        });
+    this.assignDimensions({ cols, rows, levels });
+
+    this.grid.map((_, index) => {
+      const coodrinates = this.to3D(index);
+      let type: TileTypes;
+      let isNavigable: boolean;
+      let isAtGroundLevel: boolean;
+
+      if (coodrinates[2] === levels - 1) {
+        type = Math.random() > 0.4 ? TileTypes.GROUND : TileTypes.WATER;
+        isNavigable = type === TileTypes.GROUND;
+        isAtGroundLevel = true;
+      } else {
+        type = TileTypes.GROUND;
+        isNavigable = false;
+        isAtGroundLevel = false;
+      }
+
+      return new LogicalTile({
+        i: coodrinates[0],
+        j: coodrinates[1],
+        k: coodrinates[2],
+        type,
+        isNavigable,
+        isAtGroundLevel,
       });
+    });
 
     this.calculateGroundLevel();
     this.aStar.configureGrid(this.groundLevel);
@@ -102,5 +112,12 @@ export class MapSystem {
     const z = (index - x - this.rows * y) / (this.cols * this.rows);
 
     return [y, x, z];
+  }
+
+  public get levels(): number {
+    return this._levels;
+  }
+  private set levels(value: number) {
+    this._levels = value;
   }
 }
